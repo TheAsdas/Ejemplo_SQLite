@@ -22,8 +22,8 @@ class DbHandle (context: Context): SQLiteOpenHelper(context, dbName, null, dbVer
     }
 
     override fun onCreate(p0: SQLiteDatabase?) {
-        val dbCreator = "CREATE TABLE $users_table" +
-                "(${users_id} INTEGER PRIMARY KEY AUTOINCREMENT," +
+        val dbCreator = "CREATE TABLE $users_table (" +
+                "$users_id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "$users_col_nombre TEXT, " +
                 "$users_col_apellido TEXT, " +
                 "$users_col_rut TEXT, " +
@@ -38,30 +38,29 @@ class DbHandle (context: Context): SQLiteOpenHelper(context, dbName, null, dbVer
 
     fun insertPersona(person: Person): Long
     {
-        var db = this.writableDatabase;
-        var contentValues = ContentValues();
+        val db = this.writableDatabase;
+        val values = ContentValues();
 
-        contentValues.put(users_col_nombre, person.nombre);
-        contentValues.put(users_col_apellido, person.apellido);
-        contentValues.put(users_col_rut, person.rut);
-        contentValues.put(users_col_pass, person.pass);
+        values.put(users_col_nombre, person.nombre);
+        values.put(users_col_apellido, person.apellido);
+        values.put(users_col_rut, person.rut);
+        values.put(users_col_pass, person.pass);
 
-        return db.insert(users_table, null, contentValues);
+        return db.insert(users_table, null, values);
     }
 
     fun selectPersona(): List<Person>
     {
-        var listPersons: ArrayList<Person> = ArrayList();
-        var query = "SELECT * FROM $users_table";
-        var db = this.readableDatabase;
-        var cursor: Cursor? = db.rawQuery(query, null);
+        val listPersons: ArrayList<Person> = ArrayList();
+        val query = "SELECT * FROM $users_table";
+        val cursor: Cursor? = readableDatabase.rawQuery(query, null);
 
         if (cursor!!.moveToFirst())
         {
             do
             {
                 listPersons.add(Person(
-                    cursor.getColumnIndex(users_id),
+                    cursor.getInt(cursor.getColumnIndex(users_id)),
                     cursor.getString(cursor.getColumnIndex(users_col_nombre)),
                     cursor.getString(cursor.getColumnIndex(users_col_apellido)),
                     cursor.getString(cursor.getColumnIndex(users_col_rut)),
@@ -70,6 +69,43 @@ class DbHandle (context: Context): SQLiteOpenHelper(context, dbName, null, dbVer
             } while (cursor.moveToNext());
         }
 
+        cursor.close();
         return listPersons;
     }
+
+    fun deletePersona(p: Person)
+    {
+        writableDatabase.delete(
+                users_table,
+                "$users_id = ${p.id}",
+                null
+        );
+    }
+
+    fun deletePersona(id: Int)
+    {
+        writableDatabase.delete(
+            users_table,
+            "$users_id = $id",
+            null
+        );
+    }
+
+    fun updatePersona(p: Person)
+    {
+        val values = ContentValues();
+
+        values.put(users_col_nombre, p.nombre);
+        values.put(users_col_apellido, p.apellido);
+        values.put(users_col_rut, p.rut);
+        values.put(users_col_pass, p.pass);
+
+        writableDatabase.update(
+                users_table,
+                values,
+                "$users_id = ${p.id}",
+                null
+        );
+    }
+
 }
