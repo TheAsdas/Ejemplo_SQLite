@@ -33,7 +33,8 @@ class DbHandle (context: Context): SQLiteOpenHelper(context, dbName, null, dbVer
     }
 
     override fun onUpgrade(p0: SQLiteDatabase?, p1: Int, p2: Int) {
-        p0?.execSQL("DROP TABLE IF EXISTS $users_table")
+        p0?.execSQL("DROP TABLE IF EXISTS $users_table");
+        onCreate(p0);
     }
 
     fun insertPersona(person: Person): Long
